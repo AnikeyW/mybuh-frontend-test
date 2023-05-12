@@ -1,7 +1,25 @@
 import axios from 'axios';
 import { companiesFetching, companiesFetchingSuccess, companiesFetchingError } from './companiesSlice';
 import { AppDispatch } from '../store';
-import { ICompany } from '../../models';
+import { ICompany, IFormOwnerships } from '../../models';
+import {
+	formOwnershipsFetching,
+	formOwnershipsFetchingSuccess,
+	formOwnershipsFetchingError,
+} from './formOwnershipsSlice';
+
+export const fetchFormOwnerships = () => async (dispatch: AppDispatch) => {
+	try {
+		dispatch(formOwnershipsFetching());
+		const response = await axios.get<IFormOwnerships[]>(
+			'https://raw.githubusercontent.com/arkdich/mybuh-frontend-test/main/ownerships.json'
+		);
+		dispatch(formOwnershipsFetchingSuccess(response.data));
+	} catch (e: any) {
+		dispatch(formOwnershipsFetchingError('Ошибка получения справочника форм собственности компаний!'));
+		console.log(e.message);
+	}
+};
 
 export const fetchCompanies = () => async (dispatch: AppDispatch) => {
 	try {

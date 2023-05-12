@@ -6,3 +6,13 @@ export interface ICompany {
 	tax_id: number;
 	logo: string | null;
 }
+
+export interface IFormOwnerships {
+	id: number;
+	code: string;
+	full: string;
+	short: string;
+	is_jur: boolean;
+	parent_id: number | null;
+	account_type: string | null;
+}

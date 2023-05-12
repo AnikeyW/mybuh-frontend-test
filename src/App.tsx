@@ -1,23 +1,23 @@
-import { useEffect } from 'react';
-import { fetchCompanies } from './store/reducers/actionCreators';
-import { useAppDispatch, useAppSelector } from './hooks/hooks';
+import styled from 'styled-components';
+import CompaniesLIst from './components/CompaniesLIst';
+
+const AppWrapper = styled.div`
+	width: 100%;
+`;
+const Title = styled.div`
+	text-align: center;
+	font-size: 18px;
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 600;
+	margin: 40px;
+`;
 
 function App() {
-	const dispatch = useAppDispatch();
-	const { companies } = useAppSelector((state) => state.companies);
-
-	useEffect(() => {
-		dispatch(fetchCompanies());
-	}, []);
-
-	if (!companies.length) return null;
-
 	return (
-		<div>
-			{companies.map((company) => (
-				<div>{company.company_name}</div>
-			))}
-		</div>
+		<AppWrapper>
+			<Title>Мои Организации</Title>
+			<CompaniesLIst />
+		</AppWrapper>
 	);
 }
 
