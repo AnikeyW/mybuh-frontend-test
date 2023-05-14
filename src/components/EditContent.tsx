@@ -1,4 +1,4 @@
-import React, { ChangeEvent, CSSProperties, useCallback, useState } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useState } from 'react';
 import { Radio, Space, Select, Input, Button } from 'antd';
 import type { RadioChangeEvent } from 'antd';
 import styled from 'styled-components';
@@ -73,13 +73,36 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 	const dispatch = useAppDispatch();
 	const { selectedCompany } = useAppSelector((state) => state.companies);
 	const { formOwnerships } = useAppSelector((state) => state.formOwnerships);
-	const [formOwnshipsValue, setFormOwnshipsValue] = useState(selectedCompany?.form_id || null);
+	const { taxFormGuide } = useAppSelector((state) => state.taxFormGuide);
+	const { taxes } = useAppSelector((state) => state.tax);
+	const [formOwnshipsValue, setFormOwnshipsValue] = useState(selectedCompany?.form_id);
 	const [subFormOwnshipsValue, setSubFormOwnshipsValue] = useState(SubFormOwnships.TOOIP);
-	const [formOwnshipsSelectValue, setFormOwnshipsSelectValue] = useState('0');
+	const [formOwnshipsSelectValue, setFormOwnshipsSelectValue] = useState(selectedCompany?.form_id.toString());
+	const [taxSelectValue, setTaxSelectValue] = useState('0');
+	const [iinInputValue, setIinInputValue] = useState(selectedCompany?.company_tin);
+	const [companyNameInputValue, setCompanyNameInputValue] = useState(selectedCompany?.company_name);
+
+	useEffect(() => {
+		if (selectedCompany?.form_id === FormOwnships.TOO || selectedCompany?.form_id === FormOwnships.IND_PRED) {
+			setFormOwnshipsValue(selectedCompany?.form_id);
+		} else {
+			setFormOwnshipsValue(FormOwnships.ELSE);
+		}
+		if (selectedCompany) {
+			setTaxSelectValue(selectedCompany.tax_id.toString());
+		} else {
+			setTaxSelectValue('0');
+		}
+		setIinInputValue(selectedCompany?.company_tin);
+		setCompanyNameInputValue(selectedCompany?.company_name);
+		setFormOwnshipsSelectValue(selectedCompany?.form_id.toString());
+	}, [selectedCompany]);
 
 	const formOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
 		setFormOwnshipsValue(value);
-		setSubFormOwnshipsValue(SubFormOwnships.TOOIP);
+		// setSubFormOwnshipsValue(SubFormOwnships.TOOIP);
+		// setFormOwnshipsSelectValue('0');
+		// setTaxSelectValue('0');
 	};
 
 	const subFormOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
@@ -95,7 +118,26 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 			});
 		filteredFormOwnerships.push({ value: '0', label: 'Выбрать' });
 		return filteredFormOwnerships;
-	}, [subFormOwnshipsValue]);
+	}, [subFormOwnshipsValue, selectedCompany]);
+
+	const filterTaxSystem = useCallback(() => {
+		let filteredTaxFormGuide;
+		if (formOwnshipsValue === FormOwnships.TOO || formOwnshipsValue === FormOwnships.IND_PRED) {
+			filteredTaxFormGuide = taxFormGuide.filter((taxForm) => taxForm.form_ownership_id === formOwnshipsValue);
+		} else {
+			filteredTaxFormGuide = taxFormGuide.filter(
+				(taxForm) =>
+					taxForm.form_ownership_id !== FormOwnships.TOO && taxForm.form_ownership_id !== FormOwnships.IND_PRED
+			);
+		}
+		const filteredTaxSystems = filteredTaxFormGuide.map((taxForm) => {
+			const taxSystem = taxes.find((tax) => tax.id === taxForm.tax_system_id);
+			return { value: taxSystem?.id.toString(), label: taxSystem?.full };
+		});
+		filteredTaxSystems.push({ value: '0', label: 'Выбрать' });
+		return filteredTaxSystems;
+	}, [formOwnshipsValue, selectedCompany]);
+	filterTaxSystem();
 
 	if (!selectedCompany) {
 		return null;
@@ -145,7 +187,7 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 						style={{ width: '100%' }}
 						value={formOwnshipsSelectValue}
 						onChange={(e: string) => {
-							console.log(e);
+							console.log(typeof e);
 							setFormOwnshipsSelectValue(e);
 						}}
 						options={filteringFormOwnerships()}
@@ -156,25 +198,35 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 				<InputGroup>
 					<Label>Выберите систему налогообложения</Label>
 					<Select
-						defaultValue="lucy"
 						style={{ width: '100%' }}
-						// onChange={handleChange}
-						options={[
-							{ value: 'jack', label: 'Jack' },
-							{ value: 'lucy', label: 'Lucy' },
-							{ value: 'Yiminghe', label: 'yiminghe' },
-							{ value: 'disabled', label: 'Disabled', disabled: true },
-						]}
+						value={taxSelectValue}
+						onChange={(val: string) => {
+							setTaxSelectValue(val);
+						}}
+						options={filterTaxSystem()}
 					/>
 				</InputGroup>
 			)}
 			<InputGroup>
 				<Label>Введите ИИН/БИН</Label>
-				<Input placeholder="Введите ИИН/БИН" />
+				<Input
+					value={iinInputValue}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						setIinInputValue(e.target.value);
+					}}
+					placeholder="Введите ИИН/БИН"
+				/>
 			</InputGroup>
 			<InputGroup>
 				<Label>Введите название компании</Label>
-				<Input addonBefore={'ЮЛ'} placeholder="Введите название компании" />
+				<Input
+					value={companyNameInputValue}
+					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+						setCompanyNameInputValue(e.target.value);
+					}}
+					addonBefore={'ЮЛ'}
+					placeholder="Введите название компании"
+				/>
 			</InputGroup>
 			<SubmitButton>
 				<Button
