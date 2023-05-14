@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
-import { fetchCompanies, fetchFormOwnerships } from '../store/reducers/actionCreators';
+import { fetchCompanies, fetchFormOwnerships, fetchTaxes, fetchTaxForms } from '../store/reducers/actionCreators';
 import CompanyItem from './CompanyItem';
 import Modal from './Modal';
 import { setSelectedCompany } from '../store/reducers/companiesSlice';
@@ -35,8 +35,10 @@ const CompaniesLIst = () => {
 	};
 
 	useEffect(() => {
-		dispatch(fetchCompanies());
 		dispatch(fetchFormOwnerships());
+		dispatch(fetchTaxForms());
+		dispatch(fetchTaxes());
+		dispatch(fetchCompanies());
 	}, []);
 
 	if (!companies.length) return null;

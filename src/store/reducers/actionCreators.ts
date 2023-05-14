@@ -1,14 +1,40 @@
 import axios from 'axios';
 import { companiesFetching, companiesFetchingSuccess, companiesFetchingError } from './companiesSlice';
 import { AppDispatch } from '../store';
-import { ICompany, IFormOwnerships } from '../../models';
+import { ICompany, IFormOwnerships, ITax, ITaxForm } from '../../models';
 import {
 	formOwnershipsFetching,
 	formOwnershipsFetchingSuccess,
 	formOwnershipsFetchingError,
 } from './formOwnershipsSlice';
+import { taxFetching, taxFetchingError, taxFetchingSuccess } from './taxSlice';
+import { taxFormFetching, taxFormFetchingError, taxFormFetchingSuccess } from './taxFormSlice';
 
-// export const fetchFormOwnerships = () => async (dispatch: AppDispatch) => {}
+export const fetchTaxForms = () => async (dispatch: AppDispatch) => {
+	try {
+		dispatch(taxFormFetching());
+		const response = await axios.get<ITaxForm[]>(
+			'https://raw.githubusercontent.com/arkdich/mybuh-frontend-test/main/form-to-system.json'
+		);
+		dispatch(taxFormFetchingSuccess(response.data));
+	} catch (e: any) {
+		dispatch(taxFormFetchingError('Ошибка получения справочника соотношения форм налогообложения и собственности!'));
+		console.log(e.message);
+	}
+};
+
+export const fetchTaxes = () => async (dispatch: AppDispatch) => {
+	try {
+		dispatch(taxFetching());
+		const response = await axios.get<ITax[]>(
+			'https://raw.githubusercontent.com/arkdich/mybuh-frontend-test/main/tax-systems.json'
+		);
+		dispatch(taxFetchingSuccess(response.data));
+	} catch (e: any) {
+		dispatch(taxFetchingError('Ошибка получения справочника форм налогообложения!'));
+		console.log(e.message);
+	}
+};
 
 export const fetchFormOwnerships = () => async (dispatch: AppDispatch) => {
 	try {
