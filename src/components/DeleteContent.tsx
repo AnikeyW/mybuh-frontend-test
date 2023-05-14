@@ -49,7 +49,7 @@ const DeleteContent: React.FC<DeleteContentProps> = ({ setIsDeleteModal }) => {
 						dispatch(setSelectedCompany(null));
 					}}
 				>
-					cancel
+					Отменить
 				</Button>
 				<Button
 					type="primary"
@@ -60,7 +60,7 @@ const DeleteContent: React.FC<DeleteContentProps> = ({ setIsDeleteModal }) => {
 						setIsDeleteModal(false);
 					}}
 				>
-					delete
+					Удалить
 				</Button>
 			</div>
 		</>
