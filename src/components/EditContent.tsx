@@ -76,9 +76,9 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 	const { taxFormGuide } = useAppSelector((state) => state.taxFormGuide);
 	const { taxes } = useAppSelector((state) => state.tax);
 	const [formOwnshipsValue, setFormOwnshipsValue] = useState(selectedCompany?.form_id);
-	const [subFormOwnshipsValue, setSubFormOwnshipsValue] = useState(SubFormOwnships.TOOIP);
-	const [formOwnshipsSelectValue, setFormOwnshipsSelectValue] = useState(selectedCompany?.form_id.toString());
-	const [taxSelectValue, setTaxSelectValue] = useState('0');
+	const [subFormOwnshipsValue, setSubFormOwnshipsValue] = useState<string>(SubFormOwnships.TOOIP);
+	const [formOwnshipsSelectValue, setFormOwnshipsSelectValue] = useState(selectedCompany?.form_id);
+	const [taxSelectValue, setTaxSelectValue] = useState(selectedCompany?.tax_id);
 	const [iinInputValue, setIinInputValue] = useState(selectedCompany?.company_tin);
 	const [companyNameInputValue, setCompanyNameInputValue] = useState(selectedCompany?.company_name);
 
@@ -87,15 +87,22 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 			setFormOwnshipsValue(selectedCompany?.form_id);
 		} else {
 			setFormOwnshipsValue(FormOwnships.ELSE);
+			if (formOwnerships.find((form) => form.id === selectedCompany?.form_id)) {
+				const subFormCode =
+					formOwnerships.find((form) => form.id === selectedCompany?.form_id)?.code || SubFormOwnships.TOOIP;
+				setSubFormOwnshipsValue(subFormCode);
+			} else {
+				setSubFormOwnshipsValue(SubFormOwnships.TOOIP);
+			}
 		}
 		if (selectedCompany) {
-			setTaxSelectValue(selectedCompany.tax_id.toString());
+			setTaxSelectValue(selectedCompany.tax_id);
 		} else {
-			setTaxSelectValue('0');
+			setTaxSelectValue(0);
 		}
 		setIinInputValue(selectedCompany?.company_tin);
 		setCompanyNameInputValue(selectedCompany?.company_name);
-		setFormOwnshipsSelectValue(selectedCompany?.form_id.toString());
+		setFormOwnshipsSelectValue(selectedCompany?.form_id);
 	}, [selectedCompany]);
 
 	const formOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
@@ -107,16 +114,16 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 
 	const subFormOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
 		setSubFormOwnshipsValue(value);
-		setFormOwnshipsSelectValue('0');
+		setFormOwnshipsSelectValue(0);
 	};
 
 	const filteringFormOwnerships = useCallback(() => {
 		const filteredFormOwnerships = formOwnerships
 			.filter((form) => form.account_type === subFormOwnshipsValue)
 			.map((form) => {
-				return { value: form.id.toString(), label: form.full };
+				return { value: form.id, label: form.full };
 			});
-		filteredFormOwnerships.push({ value: '0', label: 'Выбрать' });
+		filteredFormOwnerships.push({ value: 0, label: 'Выбрать' });
 		return filteredFormOwnerships;
 	}, [subFormOwnshipsValue, selectedCompany]);
 
@@ -132,9 +139,9 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 		}
 		const filteredTaxSystems = filteredTaxFormGuide.map((taxForm) => {
 			const taxSystem = taxes.find((tax) => tax.id === taxForm.tax_system_id);
-			return { value: taxSystem?.id.toString(), label: taxSystem?.full };
+			return { value: taxSystem?.id, label: taxSystem?.full };
 		});
-		filteredTaxSystems.push({ value: '0', label: 'Выбрать' });
+		filteredTaxSystems.push({ value: 0, label: 'Выбрать' });
 		return filteredTaxSystems;
 	}, [formOwnshipsValue, selectedCompany]);
 	filterTaxSystem();
@@ -186,8 +193,7 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 					<Select
 						style={{ width: '100%' }}
 						value={formOwnshipsSelectValue}
-						onChange={(e: string) => {
-							console.log(typeof e);
+						onChange={(e: number) => {
 							setFormOwnshipsSelectValue(e);
 						}}
 						options={filteringFormOwnerships()}
@@ -200,7 +206,7 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 					<Select
 						style={{ width: '100%' }}
 						value={taxSelectValue}
-						onChange={(val: string) => {
+						onChange={(val: number) => {
 							setTaxSelectValue(val);
 						}}
 						options={filterTaxSystem()}
