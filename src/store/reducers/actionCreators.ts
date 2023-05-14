@@ -8,6 +8,8 @@ import {
 	formOwnershipsFetchingError,
 } from './formOwnershipsSlice';
 
+// export const fetchFormOwnerships = () => async (dispatch: AppDispatch) => {}
+
 export const fetchFormOwnerships = () => async (dispatch: AppDispatch) => {
 	try {
 		dispatch(formOwnershipsFetching());

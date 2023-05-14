@@ -71,9 +71,12 @@ const CompanyButton = styled.div`
 interface CompanyItemProps {
 	company: ICompany;
 	formOwnerships: IFormOwnerships | undefined;
+	openDeleteModal: (id: number) => void;
+	openEditModal: (id: number) => void;
 }
 const CompanyItem = (props: CompanyItemProps) => {
-	const { company, formOwnerships } = props;
+	const { company, formOwnerships, openDeleteModal, openEditModal } = props;
+
 	return (
 		<CompanyItemBox>
 			<CompanyLogo>
@@ -86,10 +89,10 @@ const CompanyItem = (props: CompanyItemProps) => {
 				<CompanyInfoBank>ИИН/БИН {company.company_tin}</CompanyInfoBank>
 			</CompanyInfo>
 			<CompanyButtons>
-				<CompanyButton>
+				<CompanyButton onClick={() => openEditModal(company.company_id)}>
 					<img src={EditCompanyButton} alt="Редактировать" />
 				</CompanyButton>
-				<CompanyButton>
+				<CompanyButton onClick={() => openDeleteModal(company.company_id)}>
 					<img src={DeleteCompanyButton} alt="Удалить" />
 				</CompanyButton>
 			</CompanyButtons>

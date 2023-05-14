@@ -5,17 +5,30 @@ interface CompaniesState {
 	companies: ICompany[];
 	isLoading: boolean;
 	error: string;
+	selectedCompany: ICompany | null;
 }
 const initialState: CompaniesState = {
 	companies: [],
 	isLoading: false,
 	error: '',
+	selectedCompany: null,
 };
 
 export const companiesSlice = createSlice({
 	name: 'companies',
 	initialState,
 	reducers: {
+		setSelectedCompany: (state, action: PayloadAction<number | null>) => {
+			if (action.payload) {
+				state.selectedCompany = state.companies.find((company) => company.company_id === action.payload) || null;
+			} else {
+				state.selectedCompany = null;
+			}
+		},
+		deleteCompany: (state, action: PayloadAction<number | null>) => {
+			console.log(action.payload);
+			state.companies = state.companies.filter((company) => company.company_id !== action.payload);
+		},
 		companiesFetching: (state) => {
 			state.isLoading = true;
 		},
@@ -31,6 +44,13 @@ export const companiesSlice = createSlice({
 	},
 });
 
-export const { companiesFetching, companiesFetchingSuccess, companiesFetchingError } = companiesSlice.actions;
+export const {
+	// setIsDeleteModal,
+	setSelectedCompany,
+	deleteCompany,
+	companiesFetching,
+	companiesFetchingSuccess,
+	companiesFetchingError,
+} = companiesSlice.actions;
 
 export default companiesSlice.reducer;
