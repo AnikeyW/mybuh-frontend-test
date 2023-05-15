@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/mybuh-frontend-test/static/css/main.a0124bd6.css",
-    "main.js": "/mybuh-frontend-test/static/js/main.58069753.js",
+    "main.js": "/mybuh-frontend-test/static/js/main.b828eb44.js",
     "static/media/logo-default.svg": "/mybuh-frontend-test/static/media/logo-default.4edaab93f2888dad3d609f08346f5828.svg",
     "static/media/icon-edit.svg": "/mybuh-frontend-test/static/media/icon-edit.243e4c919b747126e6b487ff3e462f22.svg",
     "static/media/icon-delete.svg": "/mybuh-frontend-test/static/media/icon-delete.c35ec00aa5851e69902da1a6ebc16988.svg",
     "index.html": "/mybuh-frontend-test/index.html",
     "main.a0124bd6.css.map": "/mybuh-frontend-test/static/css/main.a0124bd6.css.map",
-    "main.58069753.js.map": "/mybuh-frontend-test/static/js/main.58069753.js.map"
+    "main.b828eb44.js.map": "/mybuh-frontend-test/static/js/main.b828eb44.js.map"
   },
   "entrypoints": [
     "static/css/main.a0124bd6.css",
-    "static/js/main.58069753.js"
+    "static/js/main.b828eb44.js"
   ]
 }
