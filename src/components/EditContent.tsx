@@ -2,9 +2,9 @@ import React, { CSSProperties, useCallback, useEffect, useState } from 'react';
 import { Radio, Space, Select, Input, Button } from 'antd';
 import type { RadioChangeEvent } from 'antd';
 import styled from 'styled-components';
-import { setSelectedCompany } from '../store/reducers/companiesSlice';
+import { editCompany } from '../store/reducers/companiesSlice';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
-import { FormOwnships, SubFormOwnships } from '../constants/const';
+import { TypeOwnships } from '../constants/const';
 
 const Box = styled.div`
 	width: 500px;
@@ -75,76 +75,100 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 	const { formOwnerships } = useAppSelector((state) => state.formOwnerships);
 	const { taxFormGuide } = useAppSelector((state) => state.taxFormGuide);
 	const { taxes } = useAppSelector((state) => state.tax);
-	const [formOwnshipsValue, setFormOwnshipsValue] = useState(selectedCompany?.form_id);
-	const [subFormOwnshipsValue, setSubFormOwnshipsValue] = useState<string>(SubFormOwnships.TOOIP);
-	const [formOwnshipsSelectValue, setFormOwnshipsSelectValue] = useState(selectedCompany?.form_id);
-	const [taxSelectValue, setTaxSelectValue] = useState(selectedCompany?.tax_id);
-	const [iinInputValue, setIinInputValue] = useState(selectedCompany?.company_tin);
-	const [companyNameInputValue, setCompanyNameInputValue] = useState(selectedCompany?.company_name);
+	const [formOwnshipsValue, setFormOwnshipsValue] = useState('');
+	const [subFormOwnshipsValue, setSubFormOwnshipsValue] = useState('');
+	const [formOwnshipsSelectValue, setFormOwnshipsSelectValue] = useState(selectedCompany.form_id);
+	const [optionsFormOwnshipsSelect, setOptionsFormOwnshipsSelect] = useState<any>([]);
 
-	useEffect(() => {
-		if (selectedCompany?.form_id === FormOwnships.TOO || selectedCompany?.form_id === FormOwnships.IND_PRED) {
-			setFormOwnshipsValue(selectedCompany?.form_id);
-		} else {
-			setFormOwnshipsValue(FormOwnships.ELSE);
-			if (formOwnerships.find((form) => form.id === selectedCompany?.form_id)) {
-				const subFormCode =
-					formOwnerships.find((form) => form.id === selectedCompany?.form_id)?.code || SubFormOwnships.TOOIP;
-				setSubFormOwnshipsValue(subFormCode);
-			} else {
-				setSubFormOwnshipsValue(SubFormOwnships.TOOIP);
-			}
-		}
-		if (selectedCompany) {
-			setTaxSelectValue(selectedCompany.tax_id);
-		} else {
-			setTaxSelectValue(0);
-		}
-		setIinInputValue(selectedCompany?.company_tin);
-		setCompanyNameInputValue(selectedCompany?.company_name);
-		setFormOwnshipsSelectValue(selectedCompany?.form_id);
-	}, [selectedCompany]);
+	const [taxSelectValue, setTaxSelectValue] = useState(selectedCompany.tax_id);
+	const [optionsTaxSelect, setOptionsTaxSelect] = useState<any>([]);
 
-	const formOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
-		setFormOwnshipsValue(value);
-		// setSubFormOwnshipsValue(SubFormOwnships.TOOIP);
-		// setFormOwnshipsSelectValue('0');
-		// setTaxSelectValue('0');
-	};
+	const [iinInputValue, setIinInputValue] = useState('');
+	const [companyNameInputValue, setCompanyNameInputValue] = useState('');
+	const [addonBeforeCompanyName, setAddonBeforeCompanyName] = useState('');
 
-	const subFormOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
-		setSubFormOwnshipsValue(value);
-		setFormOwnshipsSelectValue(0);
-	};
-
-	const filteringFormOwnerships = useCallback(() => {
-		const filteredFormOwnerships = formOwnerships
-			.filter((form) => form.account_type === subFormOwnshipsValue)
+	function filteringFormOwnerships(subFormOwnshipsVal: string) {
+		return formOwnerships
+			.filter((form) => form.account_type === subFormOwnshipsVal)
 			.map((form) => {
 				return { value: form.id, label: form.full };
 			});
-		filteredFormOwnerships.push({ value: 0, label: 'Выбрать' });
-		return filteredFormOwnerships;
-	}, [subFormOwnshipsValue, selectedCompany]);
+	}
 
-	const filterTaxSystem = useCallback(() => {
-		let filteredTaxFormGuide;
-		if (formOwnshipsValue === FormOwnships.TOO || formOwnshipsValue === FormOwnships.IND_PRED) {
-			filteredTaxFormGuide = taxFormGuide.filter((taxForm) => taxForm.form_ownership_id === formOwnshipsValue);
-		} else {
-			filteredTaxFormGuide = taxFormGuide.filter(
-				(taxForm) =>
-					taxForm.form_ownership_id !== FormOwnships.TOO && taxForm.form_ownership_id !== FormOwnships.IND_PRED
-			);
-		}
+	function filteringTaxSystems() {
+		const filteredTaxFormGuide = taxFormGuide.filter(
+			(taxForm) => taxForm.form_ownership_id === selectedCompany.form_id
+		);
+
 		const filteredTaxSystems = filteredTaxFormGuide.map((taxForm) => {
 			const taxSystem = taxes.find((tax) => tax.id === taxForm.tax_system_id);
 			return { value: taxSystem?.id, label: taxSystem?.full };
 		});
-		filteredTaxSystems.push({ value: 0, label: 'Выбрать' });
 		return filteredTaxSystems;
-	}, [formOwnshipsValue, selectedCompany]);
-	filterTaxSystem();
+	}
+
+	const subFormOwnshipsHandler = ({ target: { value } }: RadioChangeEvent) => {
+		setSubFormOwnshipsValue(value);
+		const filteredFormOwnerships = filteringFormOwnerships(value);
+		setOptionsFormOwnshipsSelect(filteredFormOwnerships);
+		setFormOwnshipsSelectValue(filteredFormOwnerships[0].value);
+		const filteredTax = filteringTaxSystems();
+		setOptionsTaxSelect(filteredTax);
+		setTaxSelectValue(filteredTax[0]?.value || 0);
+		const shortName = formOwnerships.find((form) => form.account_type === value)?.short || '';
+		setAddonBeforeCompanyName(shortName);
+	};
+
+	const submitHandler = () => {
+		const editedCompany = {
+			company_id: selectedCompany.company_id,
+			company_name: companyNameInputValue || selectedCompany.company_name,
+			company_tin: iinInputValue || selectedCompany.company_tin,
+			form_id:
+				formOwnshipsValue === TypeOwnships.IP || formOwnshipsValue === TypeOwnships.TOO
+					? selectedCompany.form_id
+					: formOwnshipsSelectValue,
+			tax_id: taxSelectValue,
+			logo: selectedCompany.logo,
+		};
+		console.log(editedCompany);
+		dispatch(editCompany(editedCompany));
+		setIsEditModal(false);
+	};
+
+	useEffect(() => {
+		const formCompany = formOwnerships.find((form) => form.id === selectedCompany.form_id)?.account_type;
+		const shortName = formOwnerships.find((form) => form.id === selectedCompany.form_id)?.short || '';
+		setAddonBeforeCompanyName(shortName);
+		if (formCompany === TypeOwnships.TOO || formCompany === TypeOwnships.IP) {
+			setFormOwnshipsValue(formCompany);
+		} else {
+			setFormOwnshipsValue(TypeOwnships.ELSE);
+			const isJur = formOwnerships.find((form) => form.id === selectedCompany.form_id)?.is_jur;
+			if (isJur) {
+				setSubFormOwnshipsValue(TypeOwnships.TOO);
+			} else {
+				const code = formOwnerships.find((form) => form.id === selectedCompany.form_id)?.code;
+				if (formCompany === TypeOwnships.CHP || code === TypeOwnships.CHP) {
+					setSubFormOwnshipsValue(TypeOwnships.CHP);
+				} else {
+					setSubFormOwnshipsValue(TypeOwnships.FIZ);
+				}
+			}
+		}
+
+		const filteredFormOwnerships = filteringFormOwnerships(subFormOwnshipsValue);
+		setOptionsFormOwnshipsSelect(filteredFormOwnerships);
+		setFormOwnshipsSelectValue(filteredFormOwnerships[0]?.value);
+
+		const filteredTax = filteringTaxSystems();
+		setOptionsTaxSelect(filteredTax);
+		setTaxSelectValue(filteredTax[0]?.value || 0);
+
+		setIinInputValue(selectedCompany.company_tin);
+		setCompanyNameInputValue(selectedCompany.company_name);
+		console.log();
+	}, [selectedCompany]);
 
 	if (!selectedCompany) {
 		return null;
@@ -153,41 +177,36 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 		<Box>
 			<Title>Редактирование данных организации</Title>
 			<InputGroup>
-				<Radio.Group
-					value={formOwnshipsValue}
-					onChange={formOwnshipsHandler}
-					buttonStyle="solid"
-					style={RadioOwnShipsStyles}
-				>
-					<Radio.Button style={RadioButtonsStyles} value={FormOwnships.TOO}>
+				<Radio.Group value={formOwnshipsValue} buttonStyle="solid" style={RadioOwnShipsStyles}>
+					<Radio.Button style={RadioButtonsStyles} value={TypeOwnships.TOO}>
 						ТОО
 					</Radio.Button>
-					<Radio.Button style={RadioButtonsStyles} value={FormOwnships.IND_PRED}>
+					<Radio.Button style={RadioButtonsStyles} value={TypeOwnships.IP}>
 						ИП
 					</Radio.Button>
-					<Radio.Button style={RadioButtonsStyles} value={FormOwnships.ELSE}>
+					<Radio.Button style={RadioButtonsStyles} value={TypeOwnships.ELSE}>
 						Прочие
 					</Radio.Button>
 				</Radio.Group>
 			</InputGroup>
-			{formOwnshipsValue !== FormOwnships.IND_PRED && formOwnshipsValue !== FormOwnships.TOO && (
+			{formOwnshipsValue !== TypeOwnships.IP && formOwnshipsValue !== TypeOwnships.TOO && (
 				<InputGroup>
 					<Radio.Group value={subFormOwnshipsValue} onChange={subFormOwnshipsHandler}>
 						<Space direction="vertical">
-							<Radio style={RadioButtonsSpaceStyles} value={SubFormOwnships.TOOIP}>
+							<Radio style={RadioButtonsSpaceStyles} value={TypeOwnships.TOO}>
 								Юридические лица
 							</Radio>
-							<Radio style={RadioButtonsSpaceStyles} value={SubFormOwnships.CHP}>
+							<Radio style={RadioButtonsSpaceStyles} value={TypeOwnships.CHP}>
 								Частная практика
 							</Radio>
-							<Radio style={RadioButtonsSpaceStyles} value={SubFormOwnships.FIZ}>
+							<Radio style={RadioButtonsSpaceStyles} value={TypeOwnships.FIZ}>
 								Физические лица
 							</Radio>
 						</Space>
 					</Radio.Group>
 				</InputGroup>
 			)}
-			{subFormOwnshipsValue !== SubFormOwnships.FIZ && formOwnshipsValue === FormOwnships.ELSE && (
+			{subFormOwnshipsValue !== TypeOwnships.FIZ && formOwnshipsValue === TypeOwnships.ELSE && (
 				<InputGroup>
 					<Label>Выберите форму собственности</Label>
 					<Select
@@ -196,11 +215,13 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 						onChange={(e: number) => {
 							setFormOwnshipsSelectValue(e);
 						}}
-						options={filteringFormOwnerships()}
+						options={optionsFormOwnshipsSelect}
 					/>
 				</InputGroup>
 			)}
-			{subFormOwnshipsValue !== SubFormOwnships.CHP && subFormOwnshipsValue !== SubFormOwnships.FIZ && (
+			{(formOwnshipsValue === TypeOwnships.TOO ||
+				formOwnshipsValue === TypeOwnships.IP ||
+				(formOwnshipsValue === TypeOwnships.ELSE && subFormOwnshipsValue === TypeOwnships.TOO)) && (
 				<InputGroup>
 					<Label>Выберите систему налогообложения</Label>
 					<Select
@@ -209,7 +230,7 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 						onChange={(val: number) => {
 							setTaxSelectValue(val);
 						}}
-						options={filterTaxSystem()}
+						options={optionsTaxSelect}
 					/>
 				</InputGroup>
 			)}
@@ -230,7 +251,7 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 					onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 						setCompanyNameInputValue(e.target.value);
 					}}
-					addonBefore={'ЮЛ'}
+					addonBefore={addonBeforeCompanyName}
 					placeholder="Введите название компании"
 				/>
 			</InputGroup>
@@ -238,10 +259,7 @@ const EditContent: React.FC<EditContentProps> = ({ setIsEditModal }) => {
 				<Button
 					type="primary"
 					style={{ backgroundColor: 'rgba(0, 154, 62, 1)', width: '170px', height: '43px ' }}
-					onClick={() => {
-						dispatch(setSelectedCompany(null));
-						setIsEditModal(false);
-					}}
+					onClick={submitHandler}
 				>
 					Сохранить
 				</Button>

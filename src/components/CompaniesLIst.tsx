@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { Spin } from 'antd';
 import { useAppDispatch, useAppSelector } from '../hooks/hooks';
 import { fetchCompanies, fetchFormOwnerships, fetchTaxes, fetchTaxForms } from '../store/reducers/actionCreators';
 import CompanyItem from './CompanyItem';
@@ -41,7 +42,12 @@ const CompaniesLIst = () => {
 		dispatch(fetchCompanies());
 	}, []);
 
-	if (!companies.length) return null;
+	if (!companies.length)
+		return (
+			<Box>
+				<Spin size={'large'} />
+			</Box>
+		);
 	if (!formOwnerships.length) return null;
 	return (
 		<Box>

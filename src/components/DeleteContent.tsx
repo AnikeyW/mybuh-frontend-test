@@ -46,7 +46,7 @@ const DeleteContent: React.FC<DeleteContentProps> = ({ setIsDeleteModal }) => {
 					style={ButtonStyles}
 					onClick={() => {
 						setIsDeleteModal(false);
-						dispatch(setSelectedCompany(null));
+						// dispatch(setSelectedCompany(null));
 					}}
 				>
 					Отменить
@@ -56,7 +56,7 @@ const DeleteContent: React.FC<DeleteContentProps> = ({ setIsDeleteModal }) => {
 					style={{ width: '285px', height: '39px', marginLeft: '20px' }}
 					onClick={() => {
 						dispatch(deleteCompany(selectedCompany ? selectedCompany.company_id : null));
-						dispatch(setSelectedCompany(null));
+						// dispatch(setSelectedCompany(null));
 						setIsDeleteModal(false);
 					}}
 				>
